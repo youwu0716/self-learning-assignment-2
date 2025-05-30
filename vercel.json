@@ -1,7 +1,7 @@
 {
   "version": 2,
   "installCommand": "npm install",
-  "buildCommand": "npm run build",
+  "buildCommand": "vite build",
   "regions": ["hkg1"],
   "crons": [{
     "path": "/api/daily-maintenance",
@@ -19,7 +19,7 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "npm run build",
+        "buildCommand": "vite build",
         "installCommand": "npm install",
         "outputDirectory": "dist"
       }
