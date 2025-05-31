@@ -1,21 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Box, Typography, TextField, Button, Grid, Paper, Avatar, Snackbar, Alert } from '@mui/material';
 import { Person as PersonIcon } from '@mui/icons-material';
 
-// Mock owner data
-const mockProfile = {
-  name: 'John Smith',
-  unit: 'Building A-1801',
-  phone: '13812345678',
-  email: 'zhangsan@example.com',
-  residentCount: 3,
-  parkingSpace: 'A-123',
-  moveInDate: '2022-01-01',
-};
+
 
 export default function Profile() {
-  const [profile, setProfile] = useState(mockProfile);
+  const [profile, setProfile] = useState({
+    name: '',
+    unit: '',
+    phone: '',
+    email: '',
+    residentCount: 0,
+    parkingSpace: '',
+    moveInDate: '',
+  });
   const [editing, setEditing] = useState(false);
+  const [password, setPassword] = useState('');
+  const [originalProfile, setOriginalProfile] = useState({}); // Store original profile for cancel
+
+  // Fetch profile data on component mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await fetch('/api/profile');
+        if (response.ok) {
+          const data = await response.json();
+          setProfile(data);
+          setOriginalProfile(data); // Save original profile
+        } else {
+          throw new Error('Failed to fetch profile');
+        }
+      } catch (error) {
+        setSnackbar({
+          open: true,
+          message: 'Failed to load profile, please try again later.',
+          severity: 'error'
+        });
+      }
+    };
+    fetchProfile();
+  }, []);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -24,6 +48,7 @@ export default function Profile() {
 
   const handleEdit = () => {
     setEditing(true);
+    setOriginalProfile(profile); // Save current profile as original when starting edit
   };
 
   const handleSave = async () => {
@@ -34,7 +59,7 @@ export default function Profile() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(profile),
+        body: JSON.stringify({ ...profile, password }), // Include password in the request
       });
 
       if (response.ok) {
@@ -44,6 +69,13 @@ export default function Profile() {
           severity: 'success'
         });
         setEditing(false);
+        setPassword(''); // Clear password after successful save
+      } else if (response.status === 401) {
+        setSnackbar({
+          open: true,
+          message: 'Incorrect password, please try again.',
+          severity: 'error'
+        });
       } else {
         throw new Error('Save failed');
       }
@@ -149,6 +181,20 @@ export default function Profile() {
             />
           </Grid>
 
+          {editing && (
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Password for Verification"
+                name="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </Grid>
+          )}
+
           <Grid item xs={12}>
             <TextField
               fullWidth
@@ -179,7 +225,8 @@ export default function Profile() {
                   variant="outlined"
                   onClick={() => {
                     setEditing(false);
-                    setProfile(mockProfile);
+                    setProfile(originalProfile); // Revert to original profile on cancel
+                    setPassword(''); // Clear password on cancel
                   }}
                 >
                   Cancel
