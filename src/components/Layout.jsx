@@ -1,4 +1,4 @@
-import { AppBar, Box, Container, CssBaseline, Drawer, IconButton, List, ListItem, ListItemIcon, ListItemText, Toolbar, Typography } from '@mui/material';
+import { AppBar, Box, Container, CssBaseline, Drawer, IconButton, List, ListItem, ListItemIcon, ListItemText, Toolbar, Typography, Button } from '@mui/material';
 import { Menu as MenuIcon, Announcement, Build, Payment, Person, ContactSupport } from '@mui/icons-material';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -28,6 +28,34 @@ export default function Layout({ children }) {
             <ListItemText primary={item.text} />
           </ListItem>
         ))}
+        <ListItem>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              let totalSize = 0;
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                totalSize += localStorage.getItem(key).length;
+              }
+              for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                totalSize += sessionStorage.getItem(key).length;
+              }
+
+              const confirmation = confirm(`Approximate cache size: ${totalSize} characters. Do you want to clear the cache?`);
+
+              if (confirmation) {
+                localStorage.clear();
+                sessionStorage.clear();
+                alert('Cache cleared!');
+              }
+            }}
+            sx={{ mt: 2, width: '100%' }}
+          >
+            Clear Cache
+          </Button>
+        </ListItem>
       </List>
     </div>
   );
